@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Trắc Nghiệm GDQP-AN (20 Câu Ngẫu Nhiên)</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --font-family: Arial, sans-serif;
+        }
+        body {
+            font-family: var(--font-family);
+            background-color: #f8f9fa;
+            color: #343a40;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .question-card {
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            transition: box-shadow 0.3s;
+        }
+        .question-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .question-text {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .option-label {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            border: 1px solid #ccc;
+        }
+        .option-label:hover {
+            background-color: #f1f1f1;
+            border-color: var(--primary-color);
+        }
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+        .submit-btn, .restart-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        .submit-btn {
+            background-color: var(--primary-color);
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        .restart-btn {
+            background-color: var(--success-color);
+            margin-top: 10px;
+        }
+        .restart-btn:hover {
+            background-color: #1e7e34;
+        }
+        #result {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 6px;
+            display: none;
+        }
+        .correct {
+            background-color: #d4edda;
+            border: 1px solid var(--success-color);
+        }
+        .incorrect {
+            background-color: #f8d7da;
+            border: 1px solid var(--danger-color);
+        }
+        .correct-answer-label {
+            background-color: #e2f0e6;
+            border: 2px solid var(--success-color);
+            font-weight: bold;
+        }
+        .user-incorrect-label {
+            background-color: #f9e3e4;
+            border: 2px solid var(--danger-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Bài Kiểm Tra GDQP-AN</h1>
+    <h2>20 Câu Hỏi Ngẫu Nhiên (Thang điểm 10)</h2>
+
+    <div id="quiz-container">
+        </div>
+
+    <button class="submit-btn" onclick="submitQuiz()">Nộp Bài & Xem Kết Quả</button>
+    <button class="restart-btn" onclick="startQuiz()" style="display: none;">Làm Bài Mới (20 Câu Ngẫu Nhiên)</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    // Dữ liệu 296 câu hỏi (đã loại bỏ 4 câu trùng lặp)
+    const allQuestions = [
+        { q: "Quốc phòng là gì?", options: ["Hoạt động nhằm phát triển kinh tế", "Hoạt động gắn với bảo vệ Tổ quốc, chống thù trong giặc ngoài", "Hoạt động ngoại giao với các nước", "Hoạt động quân sự ở biên giới"], answer: "B" },
+        { q: "Nghĩa vụ bảo vệ Tổ quốc là của ai?", options: ["Chỉ quân đội nhân dân", "Toàn dân", "Thanh niên trong độ tuổi nhập ngũ", "Chính phủ và Quốc hội"], answer: "B" },
+        { q: "Chiến tranh nhân dân Việt Nam có đặc điểm cơ bản nào?", options: ["Nhanh chóng, chớp nhoáng, dựa vào vũ khí hiện đại", "Chỉ quân đội tham gia", "Toàn dân tham gia, toàn diện, lâu dài, dựa vào sức mình là chính", "Phụ thuộc hoàn toàn vào viện trợ quốc tế"], answer: "C" },
+        { q: "Một trong các lực lượng vũ trang nhân dân là gì?", options: ["Quân đội nhân dân Việt Nam", "Bộ Y tế", "Công an nhân dân", "Đoàn Thanh niên"], answer: "A" },
+        { q: "Ý nghĩa của việc học tập Giáo dục Quốc phòng và An ninh (GDQP-AN) là gì?", options: ["Giúp học sinh hiểu luật pháp và lịch sử", "Nâng cao sức khỏe", "Tăng cường thể thao", "Giúp học sinh trốn nghĩa vụ quân sự"], answer: "A" },
+        { q: "Một trong những nội dung của GDQP-AN là gì?", options: ["Giáo dục thể chất", "Giáo dục tư tưởng, đạo đức, lối sống", "Giáo dục truyền thống dựng nước và giữ nước", "Giáo dục ngoại ngữ"], answer: "C" },
+        { q: "Đường lối quốc phòng toàn dân Việt Nam mang tính chất gì?", options: ["Chỉ mang tính chất quân sự", "Toàn dân, toàn diện", "Chỉ mang tính chất kinh tế", "Chỉ mang tính chất chính trị"], answer: "B" },
+        { q: "Nhiệm vụ của Quân đội nhân dân Việt Nam là gì?", options: ["Phát triển kinh tế, văn hóa", "Chiến đấu bảo vệ Tổ quốc", "Tham gia chính trị đối ngoại", "Phát triển công nghệ thông tin"], answer: "B" },
+        { q: "Lực lượng nào giữ vai trò nòng cốt trong sự nghiệp quốc phòng?", options: ["Quần chúng nhân dân", "Lực lượng vũ trang nhân dân", "Cán bộ công chức", "Thanh niên tình nguyện"], answer: "B" },
+        { q: "Nghĩa vụ quân sự là gì?", options: ["Là nghĩa vụ làm việc trong các cơ quan nhà nước", "Là nghĩa vụ của công dân tham gia xây dựng và bảo vệ Tổ quốc", "Là nghĩa vụ đóng thuế", "Là nghĩa vụ tham gia các hoạt động xã hội"], answer: "B" },
+        { q: "Độ tuổi thực hiện nghĩa vụ quân sự hiện nay được quy định như thế nào?", options: ["Từ đủ 18 tuổi đến hết 25 tuổi", "Từ đủ 18 tuổi đến hết 27 tuổi", "Từ đủ 20 tuổi đến hết 25 tuổi", "Từ đủ 20 tuổi đến hết 27 tuổi"], answer: "A" },
+        { q: "Nội dung nào không thuộc nhiệm vụ của Dân quân tự vệ?", options: ["Làm nhiệm vụ chiến đấu, phục vụ chiến đấu", "Phát triển kinh tế đối ngoại", "Tham gia phòng, chống, khắc phục hậu quả thiên tai", "Bảo vệ an ninh trật tự ở cơ sở"], answer: "B" },
+        { q: "Nền quốc phòng toàn dân được xây dựng trên cơ sở nào?", options: ["Chủ yếu dựa vào vũ khí hiện đại", "Sức mạnh tổng hợp của đất nước", "Sự giúp đỡ từ bên ngoài", "Địa hình hiểm trở"], answer: "B" },
+        { q: "Nội dung nào là một trong các mục tiêu của 'Diễn biến hòa bình'?", options: ["Đẩy mạnh hợp tác kinh tế", "Xóa bỏ vai trò lãnh đạo của Đảng Cộng sản Việt Nam", "Thúc đẩy phát triển khoa học", "Cải thiện quan hệ ngoại giao"], answer: "B" },
+        { q: "Học sinh tham gia xây dựng nền quốc phòng toàn dân bằng cách nào?", options: ["Tăng cường tham gia thể thao", "Nghiêm chỉnh chấp hành pháp luật, học tập tốt GDQP-AN", "Đăng ký tham gia quân đội", "Chỉ tham gia văn nghệ"], answer: "B" },
+        { q: "Chiến thắng Điện Biên Phủ năm 1954 đã kết thúc cuộc chiến tranh nào?", options: ["Chống Mỹ", "Chống Pháp", "Chống Nhật", "Chiến tranh biên giới"], answer: "B" },
+        { q: "Ngày 30/4/1975 là ngày gì?", options: ["Ngày thành lập Đảng", "Ngày Giải phóng miền Nam, thống nhất đất nước", "Ngày Quốc khánh", "Ngày Hiệp định Giơnevơ"], answer: "B" },
+        { q: "An ninh quốc gia là gì?", options: ["Chỉ là sự ổn định về kinh tế", "Sự ổn định và phát triển bền vững của chế độ xã hội", "Chỉ là sự ổn định về chính trị", "Sự ổn định về văn hóa"], answer: "B" },
+        { q: "Lực lượng nào là nòng cốt trong công tác bảo vệ an ninh trật tự xã hội?", options: ["Quân đội nhân dân", "Công an nhân dân", "Thanh niên tình nguyện", "Học sinh, sinh viên"], answer: "B" },
+        { q: "Trong 'Diễn biến hòa bình', các thế lực thù địch thường tấn công vào lĩnh vực nào đầu tiên?", options: ["Kinh tế", "Quốc phòng", "Văn hóa - Tư tưởng", "Khoa học - Công nghệ"], answer: "C" },
+        { q: "Biện pháp quan trọng nhất để chống 'Diễn biến hòa bình' là gì?", options: ["Chỉ tăng cường kinh tế", "Giữ vững ổn định chính trị và tăng cường khối đại đoàn kết toàn dân", "Chỉ tăng cường quốc phòng", "Chỉ dựa vào sự hỗ trợ quốc tế"], answer: "B" },
+        { q: "Ngày 22/12 hằng năm là ngày nào?", options: ["Ngày Quốc tế Lao động", "Ngày thành lập Quân đội nhân dân Việt Nam", "Ngày Quốc khánh", "Ngày Thương binh Liệt sĩ"], answer: "B" },
+        { q: "Trong kháng chiến chống Mỹ, tuyến đường huyết mạch nào nổi tiếng?", options: ["Đường Quốc lộ 1A", "Đường Trường Sơn - Đường Hồ Chí Minh", "Đường số 5", "Đường vành đai 3"], answer: "B" },
+        { q: "Trong GDQP-AN, nội dung nào giúp học sinh rèn luyện tính kỷ luật?", options: ["Học lịch sử", "Huấn luyện điều lệnh đội ngũ", "Học hát", "Tham gia thể thao"], answer: "B" },
+        { q: "Tư tưởng chỉ đạo xuyên suốt của Đảng về quốc phòng, an ninh là gì?", options: ["Phụ thuộc vào nước ngoài", "Độc lập, tự chủ, tự lực, tự cường", "Chỉ dựa vào kinh tế", "Chỉ dựa vào quân đội"], answer: "B" },
+        { q: "Nền quốc phòng toàn dân có mục đích gì?", options: ["Bảo vệ độc lập, chủ quyền, thống nhất, toàn vẹn lãnh thổ", "Chỉ để phát triển quân đội", "Chỉ để phát triển kinh tế", "Chỉ để phát triển văn hóa"], answer: "A" },
+        { q: "Trong xây dựng nền quốc phòng toàn dân, yếu tố nào là nền tảng?", options: ["Vũ khí hiện đại", "Thế trận lòng dân", "Địa hình", "Kinh tế"], answer: "B" },
+        { q: "Lực lượng Công an nhân dân có nhiệm vụ gì?", options: ["Chiến đấu bảo vệ biên giới", "Bảo vệ an ninh quốc gia và trật tự, an toàn xã hội", "Chỉ tham gia cứu hộ", "Chỉ tham gia sản xuất"], answer: "B" },
+        { q: "Phòng thủ dân sự là gì?", options: ["Chỉ là hoạt động quân sự", "Hoạt động phòng ngừa, ứng phó, khắc phục hậu quả chiến tranh và thiên tai", "Hoạt động ngoại giao", "Hoạt động phát triển kinh tế"], answer: "B" },
+        { q: "Ngày 19/8/1945 gắn với sự kiện nào?", options: ["Ngày Quốc khánh", "Ngày Cách mạng Tháng Tám thành công", "Ngày thành lập Đảng", "Ngày giải phóng miền Nam"], answer: "B" },
+        { q: "Trong chiến tranh nhân dân, yếu tố nào là quyết định nhất?", options: ["Vũ khí", "Tinh thần chiến đấu của nhân dân", "Địa lý", "Kinh tế"], answer: "B" },
+        { q: "Lực lượng dự bị động viên có nhiệm vụ chính là gì?", options: ["Làm kinh tế", "Sẵn sàng bổ sung cho quân đội thường trực", "Tham gia ngoại giao", "Chỉ tham gia văn hóa"], answer: "B" },
+        { q: "Chiến thắng lịch sử Điện Biên Phủ diễn ra vào năm nào?", options: ["1945", "1954", "1968", "1975"], answer: "B" },
+        { q: "Một trong những truyền thống của Quân đội nhân dân Việt Nam là gì?", options: ["Tuyệt đối trung thành với Đảng và nhân dân", "Chỉ làm kinh tế", "Chỉ làm văn hóa", "Chỉ làm thể thao"], answer: "A" },
+        { q: "Học tập GDQP-AN giúp học sinh rèn luyện phẩm chất nào?", options: ["Tư duy kinh doanh", "Lòng yêu nước, tự hào dân tộc và ý thức kỷ luật", "Năng khiếu nghệ thuật", "Khả năng thể thao"], answer: "B" },
+        { q: "Chiến lược bảo vệ Tổ quốc trong tình hình mới nhấn mạnh phương châm gì?", options: ["Dựa hoàn toàn vào viện trợ", "Kết hợp sức mạnh dân tộc với sức mạnh thời đại", "Chỉ dựa vào công nghệ", "Chỉ dựa vào lực lượng vũ trang"], answer: "B" },
+        { q: "Nội dung nào KHÔNG thuộc về nhiệm vụ của an ninh quốc gia?", options: ["Bảo vệ chế độ xã hội chủ nghĩa", "Bảo vệ độc lập, chủ quyền", "Phá hoại kinh tế", "Giữ gìn trật tự an toàn xã hội"], answer: "C" },
+        { q: "Trong xây dựng thế trận quốc phòng toàn dân, yếu tố nào có vai trò quan trọng?", options: ["Chỉ chú trọng vào vũ khí hiện đại", "Thế trận lòng dân", "Mua sắm trang thiết bị quân sự từ nước ngoài", "Xây dựng khu vui chơi giải trí"], answer: "B" },
+        { q: "Lực lượng vũ trang nhân dân bao gồm những thành phần nào?", options: ["Công an xã, bảo vệ dân phố", "Quân đội nhân dân, Công an nhân dân, Dân quân tự vệ", "Thanh niên tình nguyện, bộ đội địa phương", "Chỉ lực lượng dự bị động viên"], answer: "B" },
+        { q: "Trong thời bình, lực lượng dân quân tự vệ có nhiệm vụ chính là gì?", options: ["Chỉ huấn luyện quân sự", "Kết hợp lao động sản xuất với sẵn sàng chiến đấu", "Chỉ tham gia văn hóa - thể thao", "Chỉ làm nhiệm vụ cứu hộ"], answer: "B" },
+        { q: "Âm mưu 'diễn biến hòa bình' của các thế lực thù địch thường bắt đầu từ đâu?", options: ["Đánh trực tiếp vào biên giới", "Lợi dụng vấn đề dân chủ, nhân quyền, tôn giáo", "Chỉ dùng vũ khí công nghệ cao", "Chỉ gây sức ép ngoại giao"], answer: "B" },
+        { q: "Ngày 2/9/1945 gắn với sự kiện nào?", options: ["Thành lập Quân đội nhân dân Việt Nam", "Chủ tịch Hồ Chí Minh đọc Tuyên ngôn Độc lập", "Chiến thắng Điện Biên Phủ", "Tổng tiến công Tết Mậu Thân"], answer: "B" },
+        { q: "Nhiệm vụ cơ bản của nền an ninh nhân dân là gì?", options: ["Chỉ bảo vệ biên giới", "Bảo vệ Đảng, Nhà nước, nhân dân và chế độ xã hội chủ nghĩa", "Chỉ giữ gìn trật tự giao thông", "Chỉ tham gia sản xuất kinh tế"], answer: "B" },
+        { q: "Âm mưu của kẻ thù khi tiến hành chiến tranh công nghệ cao là gì?", options: ["Xây dựng tình đoàn kết", "Đánh nhanh, thắng nhanh, ít tổn thất", "Chỉ gây ảnh hưởng tâm lý", "Chỉ nhằm thử nghiệm vũ khí"], answer: "B" },
+        { q: "Trong kháng chiến chống Mỹ, chiến dịch nào đã dẫn tới giải phóng miền Nam?", options: ["Chiến dịch Điện Biên Phủ", "Chiến dịch Hồ Chí Minh", "Chiến dịch Tây Nguyên", "Chiến dịch Biên giới"], answer: "B" },
+        { q: "Lực lượng nào làm nòng cốt trong giữ gìn trật tự, an toàn xã hội?", options: ["Quân đội nhân dân", "Công an nhân dân", "Học sinh, sinh viên", "Thanh niên tình nguyện"], answer: "B" },
+        { q: "Trong nền an ninh nhân dân, ai là chủ thể giữ vai trò quyết định?", options: ["Chính phủ", "Quần chúng nhân dân", "Chỉ lực lượng công an", "Chỉ lực lượng quân đội"], answer: "B" },
+        { q: "Đặc trưng nổi bật của chiến tranh nhân dân Việt Nam là gì?", options: ["Đánh nhanh, thắng nhanh", "Toàn dân tham gia, toàn diện, lâu dài, dựa vào sức mình là chính", "Chỉ dựa vào vũ khí hiện đại", "Chỉ dựa vào viện trợ quốc tế"], answer: "B" },
+        { q: "Văn kiện nào là cơ sở pháp lý cao nhất để bảo vệ độc lập, chủ quyền dân tộc?", options: ["Luật Giáo dục quốc phòng", "Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam", "Chiến lược phát triển kinh tế", "Luật An toàn giao thông"], answer: "B" },
+        { q: "Âm mưu cơ bản nhất của chiến lược 'diễn biến hòa bình' là gì?", options: ["Tăng cường hợp tác quốc tế", "Xóa bỏ vai trò lãnh đạo của Đảng Cộng sản Việt Nam", "Phát triển khoa học - công nghệ", "Chỉ tấn công quân sự"], answer: "B" },
+        { q: "Đại hội đại biểu toàn quốc lần thứ VI (1986) của Đảng Cộng sản Việt Nam đã khởi xướng đường lối gì?", options: ["Đường lối công nghiệp hóa", "Đổi mới toàn diện đất nước", "Đẩy mạnh hợp tác quốc tế", "Chiến tranh nhân dân"], answer: "B" },
+        { q: "Ngày 3/2/1930 gắn liền với sự kiện nào?", options: ["Cách mạng Tháng Tám", "Thành lập Đảng Cộng sản Việt Nam", "Quốc khánh", "Chiến dịch Hồ Chí Minh"], answer: "B" },
+        { q: "Đại tướng Võ Nguyên Giáp là người được mệnh danh là gì?", options: ["Anh hùng Lực lượng vũ trang", "Người anh cả của Quân đội nhân dân Việt Nam", "Nhà cải cách giáo dục", "Nhà ngoại giao kiệt xuất"], answer: "B" },
+        { q: "Nội dung nào KHÔNG thuộc về nhiệm vụ xây dựng an ninh nhân dân?", options: ["Phòng ngừa, phát hiện, đấu tranh chống tội phạm", "Bảo vệ an ninh chính trị, an ninh kinh tế, an ninh tư tưởng", "Xây dựng lực lượng công an nhân dân vững mạnh", "Tổ chức hoạt động du lịch quốc tế"], answer: "D" },
+        { q: "Trong kháng chiến chống Mỹ, tuyến đường vận tải chiến lược nào nổi tiếng?", options: ["Đường số 5", "Đường Trường Sơn - Hồ Chí Minh", "Đường sắt Bắc Nam", "Đường Hồ Tây"], answer: "B" },
+        { q: "Trong phòng thủ dân sự, hoạt động cứu trợ nhân dân khi có thiên tai thuộc nội dung nào?", options: ["Quốc phòng", "Phòng thủ dân sự", "Ngoại giao", "Kinh tế"], answer: "B" },
+        { q: "Nội dung nào thể hiện bản chất giai cấp công nhân của Quân đội nhân dân Việt Nam?", options: ["Chỉ phục vụ lao động sản xuất", "Đặt dưới sự lãnh đạo tuyệt đối, trực tiếp về mọi mặt của Đảng Cộng sản", "Chỉ làm nhiệm vụ bảo vệ biên giới", "Chỉ phục vụ quốc tế"], answer: "B" },
+        { q: "Phong trào 'Toàn dân đoàn kết xây dựng đời sống văn hóa' có ý nghĩa gì?", options: ["Chỉ phát triển kinh tế", "Tăng cường sức mạnh tinh thần, góp phần củng cố quốc phòng - an ninh", "Chỉ nhằm phát triển giáo dục", "Chỉ tăng cường ngoại giao"], answer: "B" },
+        { q: "Trong kháng chiến chống Mỹ, phong trào 'Ba sẵn sàng' do lực lượng nào phát động?", options: ["Quân đội nhân dân", "Thanh niên Việt Nam", "Công an nhân dân", "Phụ nữ Việt Nam"], answer: "B" },
+        { q: "Trong kháng chiến chống Mỹ, phong trào 'Ba đảm đang' do lực lượng nào phát động?", options: ["Học sinh, sinh viên", "Phụ nữ Việt Nam", "Thanh niên Việt Nam", "Công nhân Việt Nam"], answer: "B" },
+        { q: "Trong công tác quốc phòng, hoạt động 'gác, trực sẵn sàng chiến đấu' thuộc nhiệm vụ của lực lượng nào?", options: ["Học sinh, sinh viên", "Dân quân tự vệ", "Thanh niên xung phong", "Mặt trận Tổ quốc"], answer: "B" },
+        { q: "Nội dung nào thể hiện trách nhiệm của học sinh đối với an ninh quốc gia?", options: ["Chỉ học tốt các môn xã hội", "Thực hiện nghiêm pháp luật, tích cực phòng chống tệ nạn xã hội", "Chỉ tham gia văn nghệ", "Chỉ tham gia thể thao"], answer: "B" },
+        { q: "Trong kháng chiến chống Pháp, chiến dịch Biên giới diễn ra năm nào?", options: ["1945", "1950", "1954", "1947"], answer: "B" },
+        { q: "Trong chiến tranh nhân dân, phương châm cơ bản là gì?", options: ["Đánh nhanh, thắng nhanh", "Toàn dân đánh giặc, lấy nhỏ thắng lớn, lấy ít địch nhiều", "Chỉ dựa vào vũ khí hiện đại", "Chỉ dựa vào viện trợ quốc tế"], answer: "B" },
+        { q: "Trong xây dựng thế trận an ninh nhân dân, biện pháp cơ bản nhất là gì?", options: ["Mua vũ khí hiện đại", "Phát động phong trào toàn dân bảo vệ an ninh Tổ quốc", "Tăng cường ngoại giao", "Phát triển kinh tế đối ngoại"], answer: "B" },
+        { q: "Nội dung nào KHÔNG thuộc quyền và nghĩa vụ cơ bản của công dân trong lĩnh vực quốc phòng?", options: ["Bảo vệ Tổ quốc", "Tham gia xây dựng lực lượng vũ trang", "Chấp hành luật nghĩa vụ quân sự", "Kinh doanh thương mại quốc tế"], answer: "D" },
+        { q: "Trong thời bình, lực lượng nào thường xuyên đảm bảo an ninh trật tự cơ sở?", options: ["Quân đội nhân dân", "Công an nhân dân", "Học sinh, sinh viên", "Thanh niên xung phong"], answer: "B" },
+        { q: "Biện pháp nào giúp nâng cao ý thức quốc phòng – an ninh trong học sinh?", options: ["Chỉ học tốt ngoại ngữ", "Tham gia học tập môn Giáo dục quốc phòng – an ninh", "Chỉ tham gia hoạt động thể thao", "Chỉ tham gia các câu lạc bộ giải trí"], answer: "B" },
+        { q: "Trong kháng chiến chống Mỹ, khẩu hiệu 'Tất cả để giải phóng miền Nam' thể hiện điều gì?", options: ["Chỉ huy động lực lượng vũ trang", "Sức mạnh tổng hợp của toàn dân tộc hướng về miền Nam", "Chỉ tập trung sản xuất nông nghiệp", "Chỉ phát triển giáo dục"], answer: "B" },
+        { q: "Trong bảo vệ Tổ quốc, nhân tố quyết định thắng lợi là gì?", options: ["Sự viện trợ quốc tế", "Sự lãnh đạo của Đảng Cộng sản Việt Nam", "Chỉ trang bị vũ khí hiện đại", "Chỉ địa hình thuận lợi"], answer: "B" },
+        { q: "Trong xây dựng nền quốc phòng toàn dân, yếu tố cơ bản nhất là gì?", options: ["Phát triển công nghệ hiện đại", "Xây dựng lòng yêu nước, ý chí quyết tâm bảo vệ Tổ quốc", "Tăng cường hợp tác quốc tế", "Phát triển du lịch quốc phòng"], answer: "B" },
+        { q: "Trong công tác quốc phòng, thế trận lòng dân được xây dựng trên cơ sở nào?", options: ["Phát triển khoa học kỹ thuật", "Lòng tin của nhân dân vào Đảng, Nhà nước", "Sức mạnh quân đội", "Hỗ trợ quốc tế"], answer: "B" },
+        { q: "Ngày 19/12/1946 gắn với sự kiện nào?", options: ["Chiến thắng Điện Biên Phủ", "Toàn quốc kháng chiến chống Pháp bùng nổ", "Giải phóng miền Nam", "Cách mạng Tháng Tám thành công"], answer: "B" },
+        { q: "Chiến lược quốc phòng toàn dân Việt Nam nhấn mạnh điều gì?", options: ["Trang bị vũ khí hiện đại", "Toàn dân, toàn diện, tự lực tự cường", "Chỉ dựa vào ngoại giao", "Chỉ phát triển công nghiệp quốc phòng"], answer: "B" },
+        { q: "Trong học tập GDQP-AN, kỹ năng bắn súng giúp học sinh rèn luyện phẩm chất nào?", options: ["Chỉ sức khỏe", "Ý thức kỷ luật và tinh thần trách nhiệm", "Chỉ trí tuệ", "Chỉ thể lực"], answer: "B" },
+        { q: "Ngày 22/12 hàng năm còn là Ngày gì bên cạnh Ngày thành lập Quân đội?", options: ["Ngày Quốc khánh", "Ngày hội Quốc phòng toàn dân", "Ngày truyền thống Công an", "Ngày chiến thắng lịch sử"], answer: "B" },
+        { q: "Trong sự nghiệp bảo vệ Tổ quốc, đối tượng tác chiến của quân đội nhân dân là gì?", options: ["Chỉ bọn phản động trong nước", "Mọi thế lực xâm lược và phản động chống phá", "Chỉ lực lượng bên ngoài", "Chỉ bọn khủng bố quốc tế"], answer: "B" },
+        { q: "Một trong những truyền thống quý báu của dân tộc ta trong bảo vệ Tổ quốc là gì?", options: ["Chỉ dựa vào địa hình hiểm trở", "Lấy nhỏ thắng lớn, lấy ít địch nhiều", "Chỉ dựa vào vũ khí hiện đại", "Chỉ dựa vào ngoại giao"], answer: "B" },
+        { q: "Trong nền an ninh nhân dân, lực lượng nòng cốt là ai?", options: ["Quân đội nhân dân", "Công an nhân dân", "Học sinh, sinh viên", "Thanh niên tình nguyện"], answer: "B" },
+        { q: "Nội dung nào sau đây thuộc nghĩa vụ quân sự?", options: ["Chỉ tham gia văn nghệ", "Thực hiện đăng ký, khám tuyển và nhập ngũ khi đủ điều kiện", "Chỉ tham gia sản xuất", "Chỉ học tập ở trường"], answer: "B" },
+        { q: "Trong chiến tranh hiện đại, loại vũ khí nào được coi là có sức hủy diệt lớn nhất?", options: ["Vũ khí thông thường", "Vũ khí hạt nhân", "Vũ khí hóa học", "Vũ khí sinh học"], answer: "B" },
+        { q: "Chiến tranh nhân dân Việt Nam mang đặc điểm cơ bản nào?", options: ["Đánh nhanh, thắng nhanh", "Toàn dân tham gia, toàn diện, lâu dài", "Chỉ quân đội tham gia", "Chỉ dựa vào viện trợ quốc tế"], answer: "B" },
+        { q: "Ngày 20/7/1954 gắn với sự kiện nào?", options: ["Thành lập Quân đội nhân dân", "Hiệp định Giơnevơ được ký kết", "Ngày thống nhất đất nước", "Ngày Cách mạng Tháng Tám"], answer: "B" },
+        { q: "Trong thế trận quốc phòng toàn dân, ai là chủ thể trung tâm?", options: ["Lực lượng vũ trang", "Nhân dân", "Công an", "Quân đội"], answer: "B" },
+        { q: "Trong học tập GDQP-AN, nội dung nào giúp học sinh rèn luyện tính kỷ luật?", options: ["Học văn hóa", "Tham gia huấn luyện quân sự", "Hoạt động văn nghệ", "Tham gia thể thao"], answer: "B" },
+        { q: "Trong bảo vệ Tổ quốc, nhiệm vụ hàng đầu của công an nhân dân là gì?", options: ["Chỉ làm kinh tế", "Bảo vệ an ninh quốc gia và trật tự an toàn xã hội", "Chỉ tham gia tuyên truyền", "Chỉ tham gia phong trào văn nghệ"], answer: "B" },
+        { q: "Ngày 30/1/1968 gắn với sự kiện nào?", options: ["Ngày thành lập Quân đội nhân dân", "Tổng tiến công và nổi dậy Tết Mậu Thân", "Giải phóng miền Nam", "Chiến thắng Biên giới"], answer: "B" },
+        { q: "Một trong những thủ đoạn của 'diễn biến hòa bình' là gì?", options: ["Thúc đẩy sản xuất", "Lợi dụng vấn đề dân chủ, nhân quyền để chia rẽ", "Khuyến khích du lịch", "Xây dựng hạ tầng"], answer: "B" },
+        { q: "Trong xây dựng an ninh nhân dân, yếu tố nào giữ vai trò quan trọng?", options: ["Công nghệ", "Nhân dân", "Quốc phòng", "Kinh tế"], answer: "B" },
+        { q: "Nội dung nào KHÔNG phải là đặc điểm của chiến tranh nhân dân?", options: ["Toàn dân tham gia", "Đánh nhanh, thắng nhanh", "Toàn diện", "Tự lực, tự cường"], answer: "B" },
+        { q: "Trong bảo vệ Tổ quốc, sức mạnh nào quyết định thắng lợi?", options: ["Vũ khí hiện đại", "Đại đoàn kết toàn dân tộc dưới sự lãnh đạo của Đảng", "Hỗ trợ quốc tế", "Điều kiện địa lý"], answer: "B" },
+        { q: "Trong nhiệm vụ quốc phòng, xây dựng khu vực phòng thủ vững chắc nhằm mục đích gì?", options: ["Đảm bảo phát triển thể thao", "Kết hợp chặt chẽ kinh tế với quốc phòng", "Phát triển ngoại ngữ", "Tăng cường giáo dục văn hóa"], answer: "B" },
+        { q: "Khái niệm 'nền quốc phòng toàn dân' nhấn mạnh điều gì?", options: ["Do quân đội quyết định", "Là sức mạnh tổng hợp của toàn dân tộc", "Do kinh tế quyết định", "Do ngoại giao quyết định"], answer: "B" },
+        { q: "Trong học tập GDQP-AN, nội dung nào giúp học sinh hiểu biết pháp luật?", options: ["Thực hành bắn súng", "Tìm hiểu luật nghĩa vụ quân sự", "Huấn luyện đội ngũ", "Rèn luyện thể lực"], answer: "B" },
+        { q: "Trong chiến lược bảo vệ Tổ quốc, yếu tố nào giữ vai trò lãnh đạo?", options: ["Quốc hội", "Đảng Cộng sản Việt Nam", "Nhân dân", "Công an nhân dân"], answer: "B" },
+        { q: "Trong an ninh nhân dân, công tác phòng ngừa có ý nghĩa gì?", options: ["Ngăn chặn từ xa các nguy cơ, giữ ổn định xã hội", "Tăng cường thể lực", "Xây dựng kinh tế", "Phát triển du lịch"], answer: "A" },
+        { q: "Một trong những nhiệm vụ cơ bản của lực lượng dân quân tự vệ là gì?", options: ["Bảo vệ cơ quan, xí nghiệp, địa phương", "Phát triển giáo dục", "Hoạt động văn hóa", "Tham gia du lịch"], answer: "A" },
+        { q: "Truyền thống 'Lấy ít địch nhiều' thể hiện điều gì?", options: ["Tinh thần đoàn kết và mưu trí sáng tạo", "Sức mạnh vũ khí hiện đại", "Chỉ dựa vào ngoại giao", "Chỉ dựa vào viện trợ"], answer: "A" },
+        { q: "Trong GDQP-AN, nội dung nào giúp học sinh rèn luyện sức khỏe, thể lực?", options: ["Huấn luyện quân sự và thể dục quốc phòng", "Nghe giảng lý thuyết", "Hoạt động nghệ thuật", "Học ngoại ngữ"], answer: "A" },
+        { q: "Sự kiện 30/4/1975 có ý nghĩa lịch sử nào?", options: ["Giải phóng miền Nam, thống nhất đất nước", "Cách mạng Tháng Tám", "Chiến thắng Điện Biên Phủ", "Ký Hiệp định Giơnevơ"], answer: "A" },
+        { q: "Thế trận lòng dân được coi là gì trong nền quốc phòng toàn dân?", options: ["Nền tảng vững chắc tạo nên sức mạnh bảo vệ Tổ quốc", "Chỉ là phong trào ngắn hạn", "Chỉ cần quân đội", "Chỉ dựa vào kinh tế"], answer: "A" },
+        { q: "Trong bảo vệ an ninh quốc gia, công tác nào được coi là trọng tâm?", options: ["Phòng ngừa, phát hiện, đấu tranh chống gián điệp, phản động", "Phát triển giáo dục", "Hoạt động nghệ thuật", "Xây dựng hạ tầng"], answer: "A" },
+        { q: "Vì sao nói quốc phòng gắn với an ninh?", options: ["Cả hai đều nhằm giữ vững độc lập, chủ quyền, ổn định xã hội", "Đều phục vụ sản xuất", "Đều phục vụ du lịch", "Đều phục vụ thương mại"], answer: "A" },
+        { q: "Trong nhiệm vụ xây dựng nền quốc phòng toàn dân, yếu tố nào giữ vai trò then chốt?", options: ["Sự lãnh đạo của Đảng", "Học sinh sinh viên", "Doanh nghiệp tư nhân", "Du khách quốc tế"], answer: "A" },
+        { q: "Khái niệm 'an ninh nhân dân' bao gồm gì?", options: ["Sức mạnh toàn dân trong bảo vệ an ninh quốc gia", "Chỉ công an tham gia", "Chỉ quân đội tham gia", "Chỉ Nhà nước quyết định"], answer: "A" },
+        { q: "Trong GDQP-AN, việc tìm hiểu truyền thống dân tộc giúp học sinh điều gì?", options: ["Bồi dưỡng lòng yêu nước, tự hào dân tộc", "Chỉ để giải trí", "Chỉ để học thuộc", "Chỉ để kiểm tra"], answer: "A" },
+        { q: "Một trong những thủ đoạn phá hoại tư tưởng của kẻ thù là gì?", options: ["Gây mất lòng tin vào Đảng, Nhà nước", "Phát triển kinh tế", "Phát triển thể thao", "Phát triển văn hóa"], answer: "A" },
+        { q: "Trong chiến tranh bảo vệ Tổ quốc, lực lượng nào giữ vai trò nòng cốt?", options: ["Quân đội nhân dân và Công an nhân dân", "Chỉ học sinh", "Chỉ cán bộ", "Chỉ thanh niên tình nguyện"], answer: "A" },
+        { q: "Ngày 19/5/1941 gắn với sự kiện nào?", options: ["Thành lập Mặt trận Việt Minh", "Ngày Quốc khánh", "Ngày giải phóng miền Nam", "Ngày ký Hiệp định Giơnevơ"], answer: "A" },
+        { q: "Trong huấn luyện quân sự, nội dung nào giúp học sinh nâng cao kỹ năng chiến đấu?", options: ["Thực hành đội ngũ, bắn súng, điều lệnh", "Chỉ học lý thuyết", "Chỉ tham gia văn nghệ", "Chỉ học ngoại ngữ"], answer: "A" },
+        { q: "Nội dung nào sau đây thuộc phạm trù an ninh quốc gia?", options: ["Bảo vệ chính trị, văn hóa, tư tưởng, kinh tế", "Chỉ bảo vệ thể thao", "Chỉ bảo vệ giáo dục", "Chỉ bảo vệ du lịch"], answer: "A" },
+        { q: "Một trong những yếu tố quyết định thắng lợi của Cách mạng Tháng Tám 1945 là gì?", options: ["Sự lãnh đạo đúng đắn của Đảng", "Vũ khí hiện đại", "Sự can thiệp của quốc tế", "Điều kiện tự nhiên"], answer: "A" },
+        { q: "Trong chiến lược bảo vệ Tổ quốc, nhân tố nào được xem là cơ bản nhất?", options: ["Đại đoàn kết toàn dân tộc", "Vũ khí hiện đại", "Hỗ trợ quốc tế", "Điều kiện địa lý"], answer: "A" },
+        { q: "Trong phòng chống tội phạm, học sinh cần thực hiện điều gì?", options: ["Tố giác tội phạm, không tham gia tệ nạn", "Thờ ơ, bỏ qua", "Che giấu tội phạm", "Tham gia theo dõi tiêu cực"], answer: "A" },
+        { q: "Ngày 30/4/1975 còn được gọi là gì?", options: ["Ngày toàn thắng, giải phóng miền Nam", "Ngày Quốc khánh", "Ngày thành lập Quân đội", "Ngày Quốc tế Lao động"], answer: "A" },
+        { q: "Một trong những nguyên tắc xây dựng nền quốc phòng toàn dân là gì?", options: ["Kết hợp chặt chẽ giữa phát triển kinh tế với củng cố quốc phòng", "Chỉ phát triển kinh tế", "Chỉ phát triển ngoại giao", "Chỉ phát triển văn hóa"], answer: "A" },
+        { q: "Trong GDQP-AN, việc giáo dục truyền thống giúp học sinh điều gì?", options: ["Nâng cao ý thức trách nhiệm bảo vệ Tổ quốc", "Chỉ để giải trí", "Chỉ để học thuộc", "Chỉ để đối phó kiểm tra"], answer: "A" },
+        { q: "Trong bảo vệ Tổ quốc, yếu tố nào giữ vai trò quyết định?", options: ["Sự lãnh đạo của Đảng", "Vũ khí hiện đại", "Kinh tế phát triển", "Điều kiện địa lý"], answer: "A" },
+        { q: "Trong xây dựng nền quốc phòng toàn dân, yếu tố nào có tính chất nền tảng?", options: ["Thế trận lòng dân", "Kinh tế thị trường", "Khoa học kỹ thuật", "Ngoại giao"], answer: "A" },
+        { q: "Trong xây dựng nền quốc phòng toàn dân, yếu tố nào giữ vai trò quyết định?", options: ["Điều kiện tự nhiên", "Sự lãnh đạo của Đảng", "Khoa học kỹ thuật", "Vũ khí hiện đại"], answer: "B" },
+        { q: "Một trong những âm mưu, thủ đoạn của các thế lực thù địch nhằm chống phá Việt Nam là gì?", options: ["Khuyến khích phát triển giáo dục", "Diễn biến hòa bình", "Thúc đẩy kinh tế bền vững", "Xây dựng văn hóa lành mạnh"], answer: "B" },
+        { q: "Trong chiến tranh nhân dân, lực lượng nào là nền tảng?", options: ["Quân đội nhân dân", "Công an nhân dân", "Nhân dân", "Thanh niên tình nguyện"], answer: "C" },
+        { q: "Trong học tập GDQP-AN, nội dung nào giúp học sinh biết cách tự vệ?", options: ["Học lịch sử", "Huấn luyện quân sự", "Học toán", "Học ngoại ngữ"], answer: "B" },
+        { q: "Trong bảo vệ Tổ quốc, sức mạnh nào được xem là tổng hợp?", options: ["Vũ khí hiện đại", "Kinh tế, chính trị, văn hóa, xã hội, quốc phòng và an ninh", "Ngoại giao quốc tế", "Tài nguyên thiên nhiên"], answer: "B" },
+        { q: "Một trong những đặc điểm cơ bản của chiến tranh nhân dân Việt Nam là gì?", options: ["Đánh nhanh, thắng nhanh", "Tự lực, tự cường", "Dựa hoàn toàn vào viện trợ", "Đánh bằng vũ khí hiện đại"], answer: "B" },
+        { q: "Trong học tập GDQP-AN, rèn luyện đội ngũ tay không giúp học sinh phát triển phẩm chất nào?", options: ["Năng khiếu nghệ thuật", "Tính kỷ luật, nhanh nhẹn", "Khả năng ca hát", "Khả năng sáng tạo văn học"], answer: "B" },
+        { q: "Trong thế trận an ninh nhân dân, lực lượng nòng cốt giữ vai trò gì?", options: ["Chỉ hỗ trợ tuyên truyền", "Tham mưu và trực tiếp chiến đấu bảo vệ an ninh", "Chỉ làm công tác hậu cần", "Chỉ tham gia phong trào văn nghệ"], answer: "B" },
+        { q: "Một trong những nội dung cơ bản của chiến lược quốc phòng toàn dân là gì?", options: ["Dựa vào ngoại bang", "Toàn dân, toàn diện, lâu dài", "Chỉ quân đội tham gia", "Chỉ dựa vào kinh tế"], answer: "B" },
+        { q: "Trong sự nghiệp bảo vệ Tổ quốc, ai là lực lượng nòng cốt?", options: ["Thanh niên xung phong", "Lực lượng vũ trang nhân dân", "Công nhân", "Học sinh, sinh viên"], answer: "B" },
+        { q: "Ngày 30/4/1975 gắn liền với sự kiện nào?", options: ["Hiệp định Paris được ký kết", "Giải phóng miền Nam, thống nhất đất nước", "Tổng tiến công và nổi dậy Tết Mậu Thân", "Chiến dịch Biên giới"], answer: "B" },
+        { q: "Trong nền quốc phòng toàn dân, yếu tố nào là cơ bản nhất?", options: ["Địa lý", "Kinh tế", "Nhân dân", "Vũ khí hiện đại"], answer: "C" },
+        { q: "Một trong những truyền thống dựng nước và giữ nước của dân tộc ta là gì?", options: ["Chỉ dựa vào ngoại bang", "Lấy yếu thắng mạnh, lấy ít địch nhiều", "Đầu hàng để tồn tại", "Chỉ dựa vào tự nhiên"], answer: "B" },
+        { q: "Trong chiến lược an ninh quốc gia, nhiệm vụ quan trọng nhất của công an nhân dân là gì?", options: ["Làm kinh tế", "Bảo vệ an ninh quốc gia và trật tự, an toàn xã hội", "Tuyên truyền văn nghệ", "Chỉ tham gia sản xuất"], answer: "B" },
+        { q: "Một trong những nhiệm vụ cơ bản của học sinh trong công tác GDQP-AN là gì?", options: ["Chỉ học văn hóa", "Rèn luyện kỹ năng quân sự cơ bản", "Chỉ tham gia thể thao", "Chỉ học tin học"], answer: "B" },
+        { q: "Trong chiến tranh nhân dân, phương châm tác chiến cơ bản là gì?", options: ["Đánh nhanh, thắng nhanh", "Trường kỳ kháng chiến, toàn dân đánh giặc", "Chỉ dựa vào quân đội", "Dựa hoàn toàn vào vũ khí hiện đại"], answer: "B" },
+        { q: "Trong xây dựng an ninh nhân dân, yếu tố quyết định thắng lợi là gì?", options: ["Vũ khí hiện đại", "Lòng dân", "Địa hình", "Kinh tế"], answer: "B" },
+        { q: "Trong học tập GDQP-AN, bắn súng tiểu liên AK giúp rèn luyện phẩm chất nào?", options: ["Khả năng văn nghệ", "Tính kỷ luật, sự chính xác", "Khả năng sáng tạo nghệ thuật", "Khả năng ca hát"], answer: "B" },
+        { q: "Một trong những âm mưu chủ yếu của chiến lược 'diễn biến hòa bình' là gì?", options: ["Khuyến khích giáo dục", "Chống phá về chính trị, tư tưởng", "Thúc đẩy kinh tế phát triển", "Khuyến khích văn hóa"], answer: "B" },
+        { q: "Trong công tác quốc phòng, xây dựng khu vực phòng thủ tỉnh, thành phố nhằm mục đích gì?", options: ["Chỉ để phát triển kinh tế", "Sẵn sàng chiến đấu, bảo vệ địa phương", "Chỉ để tuyên truyền văn hóa", "Chỉ để thu hút đầu tư"], answer: "B" },
+        { q: "Trong lực lượng vũ trang nhân dân, dân quân tự vệ có vai trò gì?", options: ["Chỉ tham gia sản xuất", "Lực lượng rộng khắp, gắn bó tại cơ sở", "Chỉ tham gia văn nghệ", "Chỉ hoạt động trong quân đội chính quy"], answer: "B" },
+        { q: "Trong nền quốc phòng toàn dân, sức mạnh tổng hợp gồm những yếu tố nào?", options: ["Chỉ kinh tế và quân sự", "Chính trị, kinh tế, quân sự, văn hóa, xã hội", "Chỉ vũ khí hiện đại", "Chỉ công nghệ"], answer: "B" },
+        { q: "Trong bảo vệ Tổ quốc, yếu tố nào giữ vai trò then chốt?", options: ["Địa hình hiểm trở", "Sự lãnh đạo của Đảng", "Sự viện trợ quốc tế", "Tài nguyên thiên nhiên"], answer: "B" },
+        { q: "Một trong những thủ đoạn của các thế lực thù địch khi thực hiện 'diễn biến hòa bình' là gì?", options: ["Khuyến khích sản xuất nông nghiệp", "Kích động chia rẽ khối đại đoàn kết dân tộc", "Đầu tư phát triển giáo dục", "Hỗ trợ y tế"], answer: "B" },
+        { q: "Trong công tác GDQP-AN ở trường phổ thông, học sinh được trang bị kiến thức gì?", options: ["Chỉ kiến thức văn hóa", "Kiến thức quốc phòng, an ninh và kỹ năng quân sự cơ bản", "Chỉ kiến thức thể thao", "Chỉ kiến thức tin học"], answer: "B" },
+        { q: "Trong chiến tranh nhân dân, yếu tố nào tạo nên sức mạnh bền vững?", options: ["Chỉ dựa vào viện trợ", "Sự tham gia của toàn dân", "Chỉ dựa vào quân đội chính quy", "Chỉ dựa vào vũ khí hiện đại"], answer: "B" },
+        { q: "Trong xây dựng thế trận lòng dân, yếu tố quan trọng nhất là gì?", options: ["Địa hình", "Niềm tin của nhân dân đối với Đảng và Nhà nước", "Vũ khí hiện đại", "Ngoại giao quốc tế"], answer: "B" },
+        { q: "Trong lịch sử chống ngoại xâm, chiến thắng Bạch Đằng năm 938 do ai lãnh đạo?", options: ["Lý Thường Kiệt", "Ngô Quyền", "Trần Hưng Đạo", "Lê Lợi"], answer: "B" },
+        { q: "Trong học tập GDQP-AN, đội ngũ từng người có súng giúp rèn luyện điều gì?", options: ["Khả năng hát múa", "Tính kỷ luật, sự phối hợp", "Khả năng sáng tác", "Khả năng vẽ tranh"], answer: "B" },
+        { q: "Trong bảo vệ Tổ quốc, nhiệm vụ quan trọng hàng đầu của quân đội nhân dân là gì?", options: ["Tham gia sản xuất", "Chiến đấu bảo vệ độc lập, chủ quyền, toàn vẹn lãnh thổ", "Tham gia văn nghệ", "Làm kinh tế"], answer: "B" },
+        { q: "Ngày 19/5/1946 gắn với sự kiện nào?", options: ["Thành lập Quân đội nhân dân", "Ngày sinh Chủ tịch Hồ Chí Minh", "Toàn quốc kháng chiến", "Chiến dịch Hồ Chí Minh"], answer: "B" },
+        { q: "Trong nền an ninh nhân dân, ai là lực lượng nòng cốt?", options: ["Thanh niên xung phong", "Công an nhân dân", "Quân đội nhân dân", "Học sinh, sinh viên"], answer: "B" },
+        { q: "Một trong những nội dung cơ bản của chiến lược bảo vệ Tổ quốc trong tình hình mới là gì?", options: ["Chỉ dựa vào ngoại bang", "Kết hợp chặt chẽ phát triển kinh tế - xã hội với tăng cường quốc phòng, an ninh", "Chỉ chú trọng kinh tế", "Chỉ chú trọng văn hóa"], answer: "B" },
+        { q: "Trong học tập GDQP-AN, học sinh cần rèn luyện phẩm chất gì?", options: ["Chỉ sáng tạo nghệ thuật", "Tinh thần trách nhiệm, kỷ luật, yêu nước", "Khả năng kinh doanh", "Khả năng giải trí"], answer: "B" },
+        { q: "Trong thế trận quốc phòng toàn dân, nhân dân có vai trò gì?", options: ["Chỉ tham gia lao động", "Vừa là lực lượng, vừa là hậu phương vững chắc", "Chỉ tham gia học tập", "Chỉ tham gia thể thao"], answer: "B" },
+        { q: "Trong bảo vệ Tổ quốc, phương châm cơ bản là gì?", options: ["Đánh nhanh, thắng nhanh", "Tự lực, tự cường, toàn dân đánh giặc", "Chỉ dựa vào ngoại bang", "Chỉ dựa vào công nghệ"], answer: "B" },
+        { q: "Một trong những nội dung quan trọng của chiến lược an ninh quốc gia là gì?", options: ["Chỉ phát triển kinh tế", "Giữ vững ổn định chính trị, trật tự, an toàn xã hội", "Chỉ phát triển văn hóa", "Chỉ phát triển khoa học kỹ thuật"], answer: "B" },
+        { q: "Trong học tập GDQP-AN, rèn luyện kỹ thuật cấp cứu ban đầu giúp ích gì?", options: ["Giải trí", "Ứng phó tình huống khẩn cấp, cứu người", "Hát hay hơn", "Kinh doanh giỏi hơn"], answer: "B" },
+        { q: "Ngày 22/12 hằng năm là ngày gì?", options: ["Ngày Quốc khánh", "Ngày thành lập Quân đội nhân dân và Ngày hội Quốc phòng toàn dân", "Ngày sinh Bác Hồ", "Ngày thống nhất đất nước"], answer: "B" },
+        { q: "Trong chiến tranh nhân dân, yếu tố nào quyết định thắng lợi?", options: ["Vũ khí hiện đại", "Đại đoàn kết toàn dân tộc", "Viện trợ quốc tế", "Địa hình hiểm trở"], answer: "B" },
+        { q: "Một trong những nội dung học GDQP-AN là gì?", options: ["Chỉ học toán", "Giáo dục truyền thống yêu nước, lòng tự hào dân tộc", "Chỉ học văn", "Chỉ học âm nhạc"], answer: "B" },
+        { q: "Trong bảo vệ Tổ quốc, đối tượng tác chiến của công an nhân dân là gì?", options: ["Chỉ bọn phản động bên ngoài", "Các thế lực phản động, tội phạm xâm phạm an ninh quốc gia", "Chỉ bọn khủng bố quốc tế", "Chỉ bọn trộm cắp nhỏ lẻ"], answer: "B" },
+        { q: "Trong học tập GDQP-AN, học sinh cần nắm vững kiến thức nào?", options: ["Chỉ kiến thức văn hóa", "Đường lối quốc phòng, an ninh của Đảng, Nhà nước", "Chỉ kiến thức xã hội", "Chỉ kiến thức âm nhạc"], answer: "B" },
+        { q: "Trong chiến tranh nhân dân, yếu tố nào không thể thiếu?", options: ["Sự viện trợ", "Toàn dân tham gia", "Địa hình hiểm trở", "Vũ khí hiện đại"], answer: "B" },
+        { q: "Ngày 27/7 hằng năm là ngày gì?", options: ["Ngày Quốc khánh", "Ngày Thương binh - Liệt sĩ", "Ngày thành lập Quân đội", "Ngày giải phóng miền Nam"], answer: "B" },
+        { q: "Trong xây dựng nền quốc phòng toàn dân, nhiệm vụ của học sinh là gì?", options: ["Chỉ học văn hóa", "Rèn luyện kiến thức, kỹ năng quốc phòng - an ninh", "Chỉ tham gia thể thao", "Chỉ tham gia văn nghệ"], answer: "B" },
+        { q: "Một trong những nội dung cơ bản của nền an ninh nhân dân là gì?", options: ["Chỉ phát triển kinh tế", "Bảo vệ vững chắc an ninh quốc gia, giữ gìn trật tự an toàn xã hội", "Chỉ phát triển văn hóa", "Chỉ phát triển giáo dục"], answer: "B" },
+        { q: "Trong học tập GDQP-AN, rèn luyện kỹ năng sơ tán phòng tránh bom đạn có ý nghĩa gì?", options: ["Giúp giải trí", "Giúp bảo vệ tính mạng trong chiến tranh, thiên tai", "Giúp ca hát tốt hơn", "Giúp kinh doanh thành công"], answer: "B" }
+    ];
+
+    let quizQuestions = [];
+    const NUM_QUESTIONS = 20;
+    const POINTS_PER_QUESTION = 10 / NUM_QUESTIONS;
+
+    // Hàm chọn ngẫu nhiên 20 câu hỏi
+    function selectRandomQuestions() {
+        const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+        quizQuestions = shuffled.slice(0, NUM_QUESTIONS);
+    }
+
+    // Hàm bắt đầu/tạo bài quiz
+    function startQuiz() {
+        selectRandomQuestions();
+        const quizContainer = document.getElementById('quiz-container');
+        quizContainer.innerHTML = '';
+        document.getElementById('result').style.display = 'none';
+        document.querySelector('.submit-btn').style.display = 'block';
+        document.querySelector('.restart-btn').style.display = 'none';
+
+        quizQuestions.forEach((q, index) => {
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            questionCard.id = `q-${index}`;
+
+            const questionText = document.createElement('div');
+            questionText.className = 'question-text';
+            questionText.textContent = `Câu ${index + 1}: ${q.q}`;
+            questionCard.appendChild(questionText);
+
+            // Chuyển mảng options thành mảng đối tượng {key: 'A', text: '...'}
+            const optionKeys = ['A', 'B', 'C', 'D'];
+            const optionsWithKeys = q.options.map((text, i) => ({ key: optionKeys[i], text: text }));
+
+            // Xáo trộn thứ tự hiển thị options để tránh quen thuộc
+            const shuffledOptions = optionsWithKeys.sort(() => 0.5 - Math.random());
+            
+            shuffledOptions.forEach(option => {
+                const label = document.createElement('label');
+                label.className = 'option-label';
+                
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = `question${index}`;
+                input.value = option.key; 
+                
+                // Lấy nội dung option
+                let optionTextContent = option.text;
+                // Nếu option text không có prefix (A:, B:, C:, D:), thêm vào
+                if (!optionTextContent.match(/^[A-D]:\s/)) {
+                    optionTextContent = `${option.key}. ${optionTextContent}`;
+                }
+
+
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(optionTextContent));
+                questionCard.appendChild(label);
+            });
+
+            quizContainer.appendChild(questionCard);
+        });
+    }
+
+    // Hàm nộp bài và chấm điểm
+    function submitQuiz() {
+        let score = 0;
+        const resultContainer = document.getElementById('result');
+        const submitButton = document.querySelector('.submit-btn');
+        const restartButton = document.querySelector('.restart-btn');
+
+        quizQuestions.forEach((q, index) => {
+            const questionCard = document.getElementById(`q-${index}`);
+            const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
+            
+            const correctKey = q.answer;
+            let userKey = null;
+
+            if (selectedOption) {
+                userKey = selectedOption.value;
+            }
+
+            questionCard.classList.remove('correct', 'incorrect');
+            
+            // Xóa các lớp đánh dấu cũ
+            questionCard.querySelectorAll('.option-label').forEach(label => {
+                label.classList.remove('correct-answer-label', 'user-incorrect-label');
+            });
+
+            // Logic chấm điểm và hiển thị đáp án
+            if (userKey === correctKey) {
+                score += POINTS_PER_QUESTION;
+                questionCard.classList.add('correct');
+            } else {
+                questionCard.classList.add('incorrect');
+            }
+
+            // Highlight đáp án đúng và sai
+            questionCard.querySelectorAll('input[type="radio"]').forEach(input => {
+                const label = input.closest('label');
+                // Tìm đáp án đúng
+                if (input.value === correctKey) {
+                    label.classList.add('correct-answer-label');
+                }
+                // Nếu người dùng chọn sai, highlight lựa chọn sai của họ
+                if (input.value === userKey && userKey !== correctKey) {
+                    label.classList.add('user-incorrect-label');
+                }
+
+                // Vô hiệu hóa input sau khi nộp bài
+                input.disabled = true;
+            });
+
+        });
+
+        // Hiển thị kết quả
+        const finalScore = score.toFixed(1);
+        resultContainer.textContent = `✅ Kết quả: ${finalScore}/${10} điểm. Bạn đã trả lời đúng ${Math.round(score / POINTS_PER_QUESTION)}/${NUM_QUESTIONS} câu.`;
+        
+        if (finalScore >= 5) {
+            resultContainer.style.backgroundColor = '#d4edda';
+            resultContainer.style.color = '#155724';
+        } else {
+            resultContainer.style.backgroundColor = '#f8d7da';
+            resultContainer.style.color = '#721c24';
+        }
+
+        resultContainer.style.display = 'block';
+        submitButton.style.display = 'none';
+        restartButton.style.display = 'block';
+    }
+
+    // Bắt đầu quiz khi tải trang
+    document.addEventListener('DOMContentLoaded', startQuiz);
+</script>
+
+</body>
+</html>
