@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm QPAN 11 - Nâng cao</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #27ae60; --wrong: #e74c3c; --bg: #ecf0f1; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; width: 100%; max-width: 700px; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .header { border-bottom: 2px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
+        .info { font-size: 0.9em; color: #666; margin-bottom: 10px; }
+        #question { font-size: 1.2em; font-weight: bold; color: var(--primary); margin-bottom: 20px; }
+        .options-grid { display: grid; gap: 12px; }
+        .opt-btn { background: #fff; border: 2px solid #ddd; padding: 15px; border-radius: 8px; text-align: left; cursor: pointer; transition: 0.2s; font-size: 16px; }
+        .opt-btn:hover:not(:disabled) { border-color: var(--secondary); background: #f9fffb; }
+        .correct { background-color: var(--secondary) !important; color: white; border-color: #219150 !important; }
+        .wrong { background-color: var(--wrong) !important; color: white; border-color: #c0392b !important; }
+        .footer { margin-top: 30px; display: flex; justify-content: space-between; align-items: center; }
+        #next-btn { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; display: none; }
+        #progress { font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="container" id="quiz-box">
+    <div class="header">
+        <h2 id="title-web">Đang tải...</h2>
+        <div class="info" id="meta-info"></div>
+    </div>
+    
+    <div id="question-container">
+        <p id="question"></p>
+        <div id="options-grid" class="options-grid"></div>
+    </div>
+
+    <div class="footer">
+        <span id="progress">Câu hỏi 1/40</span>
+        <button id="next-btn" onclick="nextQuestion()">Câu tiếp theo ➡️</button>
+    </div>
+</div>
+
+<script>
+    // DỮ LIỆU JSON CỦA BẠN
+    const data = {
+        "ten_bo_de": "Trắc nghiệm Hội thao QPAN 11 - Nâng cao",
+        "so_luong": 40,
+        "nguoi_soan": "Quân đz vờ lờ",
+        "questions": [
+            { "id": 1, "question": "Theo Luật Nghĩa vụ quân sự hiện hành, trường hợp nào sau đây được miễn gọi nhập ngũ?", "options": ["Con của liệt sĩ, con của thương binh hạng một.", "Học sinh, sinh viên đang học tại các trường THPT, đại học.", "Công dân là lao động duy nhất trực tiếp nuôi dưỡng thân nhân không còn khả năng lao động.", "Công dân đang là cán bộ, công chức, viên chức Nhà nước."], "answer": "Con của liệt sĩ, con của thương binh hạng một." },
+            { "id": 2, "question": "Trong kỹ thuật bắn súng AK, khi lấy thước ngắm 3 bắn mục tiêu bia số 4 ở cự ly 100m, điểm ngắm đúng là:", "options": ["Mép dưới chính giữa mục tiêu.", "Chính giữa mục tiêu.", "Mép trên của mục tiêu.", "Góc dưới bên trái của mục tiêu."], "answer": "Mép dưới chính giữa mục tiêu." },
+            { "id": 3, "question": "Chủ quyền trên không của Việt Nam được xác định như thế nào?", "options": ["Vùng không gian phía trên lãnh thổ đất liền, nội thủy, lãnh hải và các đảo.", "Vùng không gian phía trên vùng đặc quyền kinh tế.", "Toàn bộ bầu khí quyển có tàu bay Việt Nam hoạt động.", "Vùng không gian cách mặt đất tối đa 100km."], "answer": "Vùng không gian phía trên lãnh thổ đất liền, nội thủy, lãnh hải và các đảo." },
+            { "id": 4, "question": "Súng tiểu liên AK có bao nhiêu bộ phận chính khi tháo lắp thông thường?", "options": ["9 bộ phận", "10 bộ phận", "11 bộ phận", "12 bộ phận"], "answer": "11 bộ phận" },
+            { "id": 5, "question": "Nguyên tắc nào đúng khi băng bó vết thương bằng băng cuộn?", "options": ["Băng từ trên xuống dưới.", "Băng từ chỗ lớn đến chỗ nhỏ.", "Băng từ dưới lên trên, từ chỗ nhỏ đến chỗ lớn.", "Băng lỏng tay để máu dễ lưu thông."], "answer": "Băng từ dưới lên trên, từ chỗ nhỏ đến chỗ lớn." },
+            { "id": 6, "question": "Vùng tiếp giáp lãnh hải của Việt Nam rộng bao nhiêu hải lý?", "options": ["12 hải lý tính từ đường cơ sở.", "12 hải lý tính từ ranh giới ngoài của lãnh hải.", "24 hải lý tính từ ranh giới ngoài của lãnh hải.", "200 hải lý tính từ đường cơ sở."], "answer": "12 hải lý tính từ ranh giới ngoài của lãnh hải." },
+            { "id": 7, "question": "Đặc điểm của vết thương do đạn bắn (hỏa khí) là gì?", "options": ["Vết thương gọn, ít nhiễm trùng.", "Phạm vi phá hủy rộng, có nhiều tổ chức dập nát, dễ nhiễm trùng.", "Vết thương có độ sâu lớn nhưng miệng vết thương hẹp.", "Chỉ gây tổn thương phần mềm, không ảnh hưởng đến xương."], "answer": "Phạm vi phá hủy rộng, có nhiều tổ chức dập nát, dễ nhiễm trùng." },
+            { "id": 8, "question": "Hạn tuổi cao nhất của sĩ quan cấp Úy tại ngũ là bao nhiêu?", "options": ["45 tuổi", "46 tuổi", "48 tuổi", "50 tuổi"], "answer": "46 tuổi" },
+            { "id": 9, "question": "Trong đội ngũ đơn vị, khi nghe động lệnh 'Giải tán', chiến sĩ phải làm gì?", "options": ["Đứng nghiêm rồi mới giải tán.", "Hô 'Có' rồi giải tán.", "Hô 'Rõ' rồi giải tán.", "Giải tán ngay tại chỗ."], "answer": "Giải tán ngay tại chỗ." },
+            { "id": 10, "question": "Khoảng cách giữa các số trong đội hình tiểu đội hàng ngang là bao nhiêu?", "options": ["60 cm", "70 cm", "75 cm", "100 cm"], "answer": "70 cm" },
+            { "id": 11, "question": "Tốc độ bắn lý thuyết của súng tiểu liên AK là bao nhiêu phát/phút?", "options": ["100 phát/phút", "400 phát/phút", "600 phát/phút", "800 phát/phút"], "answer": "600 phát/phút" },
+            { "id": 12, "question": "Sơ cứu gãy xương kín cần tuân thủ nguyên tắc nào?", "options": ["Nắn thẳng xương trước khi cố định.", "Cố định trên và dưới vị trí gãy ít nhất 2 khớp.", "Chỉ cần cố định 1 khớp gần nhất.", "Chườm nóng để giảm đau ngay lập tức."], "answer": "Cố định trên và dưới vị trí gãy ít nhất 2 khớp." },
+            { "id": 13, "question": "Đường cơ sở dùng để tính chiều rộng lãnh hải Việt Nam là loại đường nào?", "options": ["Đường thủy triều thấp nhất.", "Đường cơ sở thẳng.", "Đường song song với bờ biển.", "Đường nối các điểm sâu nhất của biển."], "answer": "Đường cơ sở thẳng." },
+            { "id": 14, "question": "Tư thế nằm bắn súng AK gồm mấy bước cơ bản?", "options": ["2 bước", "3 bước: Nằm xuống, Chuẩn bị súng, Chuẩn bị đạn.", "3 bước: Chuẩn bị bắn, Bắn, Thôi bắn.", "4 bước"], "answer": "3 bước: Chuẩn bị bắn, Bắn, Thôi bắn." },
+            { "id": 15, "question": "Quốc gia nào sau đây không có chung đường biên giới đất liền với Việt Nam?", "options": ["Lào", "Campuchia", "Trung Quốc", "Thái Lan"], "answer": "Thái Lan" },
+            { "id": 16, "question": "Hành vi nào bị nghiêm cấm trong Luật Nghĩa vụ quân sự?", "options": ["Đăng ký nghĩa vụ quân sự khi đủ 17 tuổi.", "Trốn tránh, chống đối, cản trở việc thực hiện nghĩa vụ quân sự.", "Đi làm xa nhà khi đang trong độ tuổi gọi nhập ngũ.", "Xin tạm hoãn vì lý do sức khỏe."], "answer": "Trốn tránh, chống đối, cản trở việc thực hiện nghĩa vụ quân sự." },
+            { "id": 17, "question": "Trong tháo lắp súng AK, bộ phận nào được tháo ra cuối cùng?", "options": ["Hộp tiếp đạn", "Ốp lót tay và ống dẫn khí", "Bệ khóa nòng và khóa nòng", "Thông nòng"], "answer": "Ốp lót tay và ống dẫn khí" },
+            { "id": 18, "question": "Vết thương mạch máu lớn ở chi cần xử lý cấp cứu bằng cách nào hiệu quả nhất?", "options": ["Băng ép", "Đắp thuốc cầm máu", "Đặt garo", "Rửa bằng nước sát trùng"], "answer": "Đặt garo" },
+            { "id": 19, "question": "Tầm bắn hiệu quả của súng AK đối với mục tiêu dưới đất là bao nhiêu mét?", "options": ["200m", "400m", "800m", "1000m"], "answer": "400m" },
+            { "id": 20, "question": "Luật biên giới quốc gia quy định biên giới trên biển của Việt Nam là:", "options": ["Ranh giới ngoài của vùng đặc quyền kinh tế.", "Ranh giới ngoài của thềm lục địa.", "Ranh giới ngoài của lãnh hải.", "Ranh giới ngoài của vùng tiếp giáp lãnh hải."], "answer": "Ranh giới ngoài của lãnh hải." },
+            { "id": 21, "question": "Khi thực hiện động tác 'Chào', lòng bàn tay phải hướng về đâu?", "options": ["Hướng xuống đất.", "Hướng vào trong cơ thể.", "Hướng ra phía trước.", "Nghiêng 45 độ so với mặt đất."], "answer": "Hướng ra phía trước." },
+            { "id": 22, "question": "Loại đạn súng AK thường dùng có đầu đạn ký hiệu màu gì là đạn vạch đường?", "options": ["Màu đỏ", "Màu xanh lá cây", "Màu đen", "Không có màu"], "answer": "Màu xanh lá cây" },
+            { "id": 23, "question": "Thời hạn phục vụ tại ngũ của hạ sĩ quan, binh sĩ trong thời bình là:", "options": ["12 tháng", "18 tháng", "24 tháng", "36 tháng"], "answer": "24 tháng" },
+            { "id": 24, "question": "Kỹ thuật cấp cứu ngừng tuần hoàn (ép tim - thổi ngạt) theo tỷ lệ chuẩn hiện nay là:", "options": ["15 ép tim - 2 thổi ngạt", "30 ép tim - 2 thổi ngạt", "5 ép tim - 1 thổi ngạt", "10 ép tim - 5 thổi ngạt"], "answer": "30 ép tim - 2 thổi ngạt" },
+            { "id": 25, "question": "Tác dụng của bộ phận đẩy về trong súng AK là gì?", "options": ["Đưa đạn vào buồng nòng.", "Đẩy bệ khóa nòng và khóa nòng về phía trước.", "Kích nổ hạt nổ của viên đạn.", "Giảm độ giật của súng."], "answer": "Đẩy bệ khóa nòng và khóa nòng về phía trước." },
+            { "id": 26, "question": "Đối tượng nào được tạm hoãn gọi nhập ngũ trong thời bình?", "options": ["Công dân là lao động duy nhất nuôi dưỡng thân nhân không còn khả năng lao động.", "Con của bệnh binh hạng ba.", "Công dân có bằng tiến sĩ.", "Công dân đang làm việc tại các tập đoàn tư nhân."], "answer": "Công dân là lao động duy nhất nuôi dưỡng thân nhân không còn khả năng lao động." },
+            { "id": 27, "question": "Khi băng vết thương ở trán, kiểu băng nào thường được sử dụng?", "options": ["Băng vòng tròn.", "Băng số 8.", "Băng kiểu xoắn ốc.", "Băng kiểu đầu rìu."], "answer": "Băng số 8." },
+            { "id": 28, "question": "Lãnh hải của Việt Nam có chiều rộng bao nhiêu hải lý?", "options": ["12 hải lý", "24 hải lý", "200 hải lý", "100 hải lý"], "answer": "12 hải lý" },
+            { "id": 29, "question": "Súng AK có thể bắn được ở các chế độ nào?", "options": ["Chỉ bắn phát một.", "Chỉ bắn liên thanh.", "Bắn phát một và bắn liên thanh.", "Bắn 3 viên một."], "answer": "Bắn phát một và bắn liên thanh." },
+            { "id": 30, "question": "Trong sơ cứu bỏng, việc đầu tiên cần làm là:", "options": ["Bôi kem đánh răng lên vết bỏng.", "Ngâm vùng bị bỏng vào nước sạch, mát (15-20 độ C).", "Chọc thủng các nốt phồng rộp.", "Băng thật chặt vết bỏng."], "answer": "Ngâm vùng bị bỏng vào nước sạch, mát (15-20 độ C)." },
+            { "id": 31, "question": "Biên giới quốc gia trên đất liền được đánh dấu bằng hệ thống gì?", "options": ["Các cột mốc quốc giới.", "Các hàng rào kẽm gai.", "Các hào sâu.", "Hệ thống camera giám sát."], "answer": "Các cột mốc quốc giới." },
+            { "id": 32, "question": "Bộ phận nào của súng AK có tác dụng làm buồng đốt và chịu áp lực khí thuốc?", "options": ["Hộp khóa nòng", "Nòng súng", "Bệ khóa nòng", "Khóa nòng"], "answer": "Nòng súng" },
+            { "id": 33, "question": "Khi di chuyển ở tư thế 'Đi khom', súng được đặt ở tư thế nào?", "options": ["Súng đeo sau lưng.", "Súng ở tư thế sẵn sàng chiến đấu, tay phải nắm cổ báng súng.", "Súng kẹp dưới nách.", "Súng vác trên vai."], "answer": "Súng ở tư thế sẵn sàng chiến đấu, tay phải nắm cổ báng súng." },
+            { "id": 34, "question": "Thành phần nào không thuộc biên giới quốc gia?", "options": ["Biên giới trên đất liền.", "Biên giới trên biển.", "Biên giới dưới lòng đất.", "Biên giới trên vùng đặc quyền kinh tế."], "answer": "Biên giới trên vùng đặc quyền kinh tế." },
+            { "id": 35, "question": "Trong động tác bắn, 'ngắm sai hướng' sẽ dẫn đến kết quả gì?", "options": ["Đạn bay cao hơn mục tiêu.", "Đạn bay thấp hơn mục tiêu.", "Đạn lệch sang trái hoặc sang phải mục tiêu.", "Đạn không nổ."], "answer": "Đạn lệch sang trái hoặc sang phải mục tiêu." },
+            { "id": 36, "question": "Nội thủy là vùng biển nằm ở đâu?", "options": ["Phía ngoài lãnh hải.", "Phía trong đường cơ sở.", "Giữa lãnh hải và vùng tiếp giáp.", "Nằm ngoài 200 hải lý."], "answer": "Phía trong đường cơ sở." },
+            { "id": 37, "question": "Súng AK-47 do ai thiết kế?", "options": ["Mikhail Kalashnikov", "Simonov", "Makarov", "Dragunov"], "answer": "Mikhail Kalashnikov" },
+            { "id": 38, "question": "Sơ cứu vết thương ngực hở (phổi) cần phải làm gì ngay lập tức?", "options": ["Để hở vết thương cho dễ thở.", "Dùng gạc sạch băng kín, tạo áp lực âm cho lồng ngực.", "Cho nạn nhân uống nước gừng.", "Rút ngay dị vật cắm trên ngực."], "answer": "Dùng gạc sạch băng kín, tạo áp lực âm cho lồng ngực." },
+            { "id": 39, "question": "Độ tuổi đăng ký nghĩa vụ quân sự lần đầu là bao nhiêu?", "options": ["Đủ 17 tuổi", "Đủ 18 tuổi", "Đủ 20 tuổi", "Đủ 16 tuổi"], "answer": "Đủ 17 tuổi" },
+            { "id": 40, "question": "Mục đích của việc học QPAN trong trường THPT là gì?", "options": ["Để trở thành quân nhân chuyên nghiệp ngay lập tức.", "Để hiểu về truyền thống chống giặc và có kỹ năng bảo vệ Tổ quốc cơ bản.", "Để được miễn đi nghĩa vụ quân sự.", "Để rèn luyện thể lực như vận động viên."], "answer": "Để hiểu về truyền thống chống giặc và có kỹ năng bảo vệ Tổ quốc cơ bản." }
+        ]
+    };
+
+    let currentIdx = 0;
+    let score = 0;
+
+    function init() {
+        document.getElementById('title-web').innerText = data.ten_bo_de;
+        document.getElementById('meta-info').innerText = `Người soạn: ${data.nguoi_soan} | Số lượng: ${data.so_luong} câu`;
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = data.questions[currentIdx];
+        document.getElementById('question').innerText = `${currentIdx + 1}. ${q.question}`;
+        document.getElementById('progress').innerText = `Câu hỏi ${currentIdx + 1}/${data.questions.length}`;
+        
+        const grid = document.getElementById('options-grid');
+        grid.innerHTML = '';
+        document.getElementById('next-btn').style.display = 'none';
+
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, q.answer);
+            grid.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, selected, correct) {
+        const allBtns = document.querySelectorAll('.opt-btn');
+        allBtns.forEach(b => b.disabled = true);
+
+        if (selected === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            allBtns.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
+        }
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < data.questions.length) {
+            showQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        const percent = Math.round((score / data.questions.length) * 100);
+        let rank = percent >= 80 ? "Xuất sắc! 🎖️" : (percent >= 50 ? "Khá lắm! 👍" : "Cần cố gắng thêm! 💪");
+        
+        document.getElementById('quiz-box').innerHTML = `
+            <div style="text-align:center; padding: 20px;">
+                <h1 style="font-size: 50px; margin: 0;">${percent}%</h1>
+                <h2>${rank}</h2>
+                <p>Bạn trả lời đúng <b>${score}</b> trên tổng số <b>${data.questions.length}</b> câu.</p>
+                <button onclick="location.reload()" style="background:var(--secondary); color:white; border:none; padding:15px 30px; border-radius:5px; cursor:pointer; font-size:16px;">Làm lại từ đầu</button>
+            </div>
+        `;
+    }
+
+    init();
+</script>
+</body>
+</html>
